@@ -1,0 +1,45 @@
+{
+  "name": "@fabiospampinato/statico",
+  "description": "Simple static website generator, with support for (some) server-like requests.",
+  "version": "0.0.1",
+  "bin": "bin/index.js",
+  "keywords": [
+    "static",
+    "website",
+    "generator",
+    "server"
+  ],
+  "bugs": {
+    "url": "https://github.com/svelto/statico/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Fabio Spampinato",
+    "email": "spampinabio@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/svelto/statico.git"
+  },
+  "dependencies": {
+    "async-done": "^1.2.4",
+    "browser-sync": "^2.23.6",
+    "caporal": "git://github.com/fabiospampinato/Caporal.js#cf0f5eeefb2e04cc07798bf4a45d6bda5e2a2f63",
+    "chalk": "^2.3.1",
+    "del": "^3.0.0",
+    "fancy-log": "^1.3.2",
+    "globby": "^8.0.1",
+    "gulp": "github:gulpjs/gulp#4.0",
+    "lodash": "^4.16.6",
+    "minimist-string": "^1.0.2",
+    "mkdirp": "^0.5.1",
+    "pify": "^3.0.0",
+    "pretty-time": "^0.2.0",
+    "read-pkg-up": "^3.0.0",
+    "require-dot-file": "^0.4.0",
+    "string-matches": "^1.0.1",
+    "update-notifier": "^2.3.0",
+    "webpack": "^4.0.0",
+    "yargs": "^6.0.0"
+  }
+}
