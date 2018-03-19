@@ -14,7 +14,7 @@ function task () {
         src = path.join ( cwd, config.input.server ),
         dist = path.join ( cwd, config.output.server );
 
-return serverfy ({ src, dist });
+  return serverfy ({ src, dist });
 
 }
 
