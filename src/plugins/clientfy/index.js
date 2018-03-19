@@ -67,6 +67,18 @@ function readFile ( filepath ) {
 
 }
 
+function getPageTemplateNames ( config, filepath ) {
+
+  return _.uniq ( config.templateNamesRe.exec ( filepath ).slice ( 1 ) );
+
+}
+
+function isPageTemplate ( page, template ) {
+
+  return !!page.templateNames.find ( name => name === template.name );
+
+}
+
 async function getHelpers ( config ) {
 
   const filepaths = await getGlobs ( config, config.helpersGlob );
@@ -113,12 +125,11 @@ async function getPages ( config ) {
     const relPath = filepath.substr ( srcLength ),
           distPath = path.join ( config.dist, relPath );
 
-    if ( await isNewer ( distPath, filepath ) ) continue; // Skipping, the source didn't change
+    if ( await isNewer ( distPath, filepath ) ) continue; // Skipping, the source didn't change //TODO: Should also detect changes in the layouts
 
-    const template = path.parse ( filepath ).name,
-          content = '';
+    const templateNames = getPageTemplateNames ( config, filepath );
 
-    pages[filepath] = { path: filepath, distPath, template, content };
+    pages[filepath] = { path: filepath, distPath, templateNames };
 
   }
 
@@ -128,10 +139,9 @@ async function getPages ( config ) {
 
 function getTemplates ( config, pages ) {
 
-  const templates = {},
-        filepaths = Object.keys ( pages );
+  const templates = {};
 
-  filepaths.forEach ( filepath => {
+  _.forOwn ( pages, ( page, filepath ) => {
 
     const pageContent = readFile ( filepath ),
           tags = stringMatches ( pageContent, config.templateRe ),
@@ -148,19 +158,25 @@ function getTemplates ( config, pages ) {
             content = contents[i],
             [tagArr, tagData] = parseArgs ( header ),
             baseData = { layout: config.layout, content },
-            data = _.merge ( baseData, tagData );
+            template = _.merge ( baseData, tagData );
 
-      if ( !data.name ) {
+      if ( !template.name ) {
 
         if ( missingNames ) throw new Error ( `More than 1 template with implicit name in "${filepath}"` );
 
-        data.name = pages[filepath].template;
+        template.name = page.templateNames[0];
 
         missingNames++;
 
       }
 
-      templates[data.name] = data;
+      if ( !page.template && isPageTemplate ( page, template ) ) {
+
+        page.template = template;
+
+      }
+
+      templates[template.name] = template;
 
     });
 
@@ -178,9 +194,9 @@ function renderPages ( config, helpers, layouts, templates, pages ) {
 
 function renderPage ( config, helpers, layouts, templates, pages, page ) {
 
-  const template = templates[page.template];
+  const {template} = page;
 
-  if ( !template ) throw new Error ( `No template with name "${name}" found in "${page.path}"` );
+  if ( !template ) throw new Error ( `No template with name(s) ${page.templateNames.map ( name => `"${name}"` ).join ( ', ' )} found in "${page.path}"` );
 
   const layout = layouts[template.layout];
 
@@ -265,6 +281,7 @@ async function clientfy ( config ) {
     helpersGlob: 'helpers/**/*.js',
     layoutsGlob: 'layouts/*.html',
     pagesGlob: 'pages/**/*.html',
+    templateNamesRe: /pages\/(.*?([^/]*))\.html$/i,
     templateRe: /<template([^>]*)>([^]*?)<\/template>/gmi,
     helpersRe: /{{{([^} ]+)(.*?)}}}|{{([^} ]+)(.*?)}}/,
     layout: 'master',

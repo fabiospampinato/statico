@@ -9,19 +9,25 @@ const helpers = {
 
   '>': function ( template ) {
 
-    template = ( template === this.config.layoutTemplate ) ? this.page.template : template;
+    if ( template === this.config.layoutTemplate ) { // Main page template
 
-    return this.templates[template].content;
+      return this.page.template.content;
+
+    } else { // Another template
+
+      return this.templates[template].content;
+
+    }
 
   },
 
   title: function ( homepage, advanced ) {
 
-    if ( this.page.template === this.config.layoutMainTemplate ) return homepage;
+    if ( this.page.template.name === this.config.layoutMainTemplate ) return homepage;
 
-    const title = this.templates[this.page.template].title || this.page.template;
+    const title = _.startCase ( this.page.template.title || this.page.template.name );
 
-    return advanced.replace ( '[title]', _.startCase ( title ) );
+    return advanced.replace ( '[title]', title );
 
   }
 
