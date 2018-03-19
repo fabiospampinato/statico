@@ -46,6 +46,14 @@ const gutil = {
 
   task: {
 
+    catchError ( result ) {
+
+      if ( !result || !result.catch ) return result;
+
+      return result.catch ( err => console.error ( err.message ) );
+
+    },
+
     withLogger ( task, name ) {
 
       function withLogger ( ...args ) {
@@ -74,7 +82,7 @@ const gutil = {
 
         asyncDone ( () => res, end );
 
-        return res;
+        return gutil.task.catchError ( res );
 
       }
 
