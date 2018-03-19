@@ -8,6 +8,7 @@
 const _ = require ( 'lodash' ),
       fs = require ( 'fs' ),
       globby = require ( 'globby' ),
+      minify = require ( 'html-minifier' ).minify,
       minimistStr = require ( 'minimist-string' ),
       mkdirp = require ( 'mkdirp' ),
       path = require ( 'path' ),
@@ -224,6 +225,26 @@ function renderHelpers ( config, helpers, layouts, templates, pages, page ) {
 
 }
 
+function minifyPages ( config, pages ) {
+
+  const minifyOptions = {
+    collapseWhitespace: true,
+    minifyCSS: false,
+    minifyJS: false,
+    removeComments: true,
+    removeRedundantAttributes: true,
+    removeScriptTypeAttributes: true,
+    removeStyleLinkTypeAttributes: true
+  };
+
+  _.forOwn ( pages, page => {
+
+    page.content = minify ( page.content, minifyOptions );
+
+  });
+
+}
+
 async function writePages ( config, pages ) {
 
   _.forOwn ( pages, page => {
@@ -268,6 +289,7 @@ async function clientfy ( config ) {
         templates = getTemplates ( config, pages );
 
   renderPages ( config, helpers, layouts, templates, pages );
+  minifyPages ( config, pages );
   writePages ( config, pages );
 
 }
