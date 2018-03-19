@@ -269,6 +269,7 @@ async function clientfy ( config ) {
     helpersRe: /{{{([^} ]+)(.*?)}}}|{{([^} ]+)(.*?)}}/,
     layout: 'master',
     layoutTemplate: 'template',
+    layoutMainTemplate: 'index'
   }, config );
 
   /* CLIENTFY */
