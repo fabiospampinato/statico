@@ -61,14 +61,6 @@ function getGlobs ( config, globs ) {
 
 }
 
-function getMatch ( str, regex, index = 1 ) {
-
-  const match = regex.exec ( str );
-
-  return match ? match[index] : null;
-
-}
-
 function readFile ( filepath ) {
 
   return fs.readFileSync ( filepath, { encoding: 'utf-8' } );
@@ -154,21 +146,21 @@ function getTemplates ( config, pages ) {
 
       const header = headers[i],
             content = contents[i],
-            layout = getMatch ( header, config.templateLayoutRe ) || config.layout;
+            [tagArr, tagData] = parseArgs ( header ),
+            baseData = { layout: config.layout, content },
+            data = _.merge ( baseData, tagData );
 
-      let name = getMatch ( header, config.templateNameRe );
-
-      if ( !name ) {
+      if ( !data.name ) {
 
         if ( missingNames ) throw new Error ( `More than 1 template with implicit name in "${filepath}"` );
 
-        name = pages[filepath].template;
+        data.name = pages[filepath].template;
 
         missingNames++;
 
       }
 
-      templates[name] = { name, layout, content };
+      templates[data.name] = data;
 
     });
 
@@ -204,7 +196,7 @@ function renderHelpers ( config, helpers, layouts, templates, pages, page ) {
 
   while ( true ) {
 
-    const match = config.layoutHelpersRe.exec ( page.content );
+    const match = config.helpersRe.exec ( page.content );
 
     if ( !match ) break;
 
@@ -273,12 +265,10 @@ async function clientfy ( config ) {
     helpersGlob: 'helpers/**/*.js',
     layoutsGlob: 'layouts/*.html',
     pagesGlob: 'pages/**/*.html',
-    templateRe: /<(template[^>]*)>([^]*?)<\/template>/gmi,
-    templateNameRe: /name="([^"]*)"/,
-    templateLayoutRe: /layout="([^"]*)"/,
+    templateRe: /<template([^>]*)>([^]*?)<\/template>/gmi,
+    helpersRe: /{{{([^} ]+)(.*?)}}}|{{([^} ]+)(.*?)}}/,
     layout: 'master',
     layoutTemplate: 'template',
-    layoutHelpersRe: /{{{([^} ]+)(.*?)}}}|{{([^} ]+)(.*?)}}/
   }, config );
 
   /* CLIENTFY */
