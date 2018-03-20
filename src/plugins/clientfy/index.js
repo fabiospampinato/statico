@@ -1,6 +1,5 @@
 
-//TODO: Avoid `sync` methods
-//TODO: Avoid writing the same file to the the disk if it didn't actually change
+//TODO: Parallelize async loops
 //TODO: Publish as `clientfy` or something
 
 /* REQUIRE */
@@ -61,9 +60,15 @@ function getGlobs ( config, globs ) {
 
 }
 
-function readFile ( filepath ) {
+async function readFile ( filepath ) {
 
-  return fs.readFileSync ( filepath, { encoding: 'utf-8' } );
+  return pify ( fs.readFile )( filepath, { encoding: 'utf-8' } );
+
+}
+
+async function writeFile ( filepath, content ) {
+
+  return pify ( fs.writeFile )( filepath, content );
 
 }
 
@@ -81,17 +86,16 @@ function isPageTemplate ( page, template ) {
 
 async function getHelpers ( config ) {
 
-  const filepaths = await getGlobs ( config, config.helpersGlob );
+  const filepaths = await getGlobs ( config, config.helpersGlob ),
+        helpers = {};
 
-  const helpers = filepaths.reduce ( ( acc, filepath ) => {
+  for ( let filepath of filepaths ) {
 
     const namespace = path.parse ( filepath ).name;
 
-    acc[namespace] = require ( filepath );
+    helpers[namespace] = require ( filepath );
 
-    return acc;
-
-  }, {} );
+  }
 
   return _.merge ( {}, defaultHelpers, helpers );
 
@@ -99,18 +103,19 @@ async function getHelpers ( config ) {
 
 async function getLayouts ( config ) {
 
-  const filepaths = await getGlobs ( config, config.layoutsGlob );
+  const filepaths = await getGlobs ( config, config.layoutsGlob ),
+        layouts = {};
 
-  return filepaths.reduce ( ( acc, filepath ) => {
+  for ( let filepath of filepaths ) {
 
     const {name} = path.parse ( filepath ),
-          content = readFile ( filepath );
+          content = await readFile ( filepath );
 
-    acc[name] = { name, content };
+    layouts[name] = { name, content };
 
-    return acc;
+  }
 
-  }, {} );
+  return layouts;
 
 }
 
@@ -137,13 +142,15 @@ async function getPages ( config ) {
 
 }
 
-function getTemplates ( config, pages ) {
+async function getTemplates ( config, pages ) {
 
-  const templates = {};
+  const filepaths = Object.keys ( pages ),
+        templates = {};
 
-  _.forOwn ( pages, ( page, filepath ) => {
+  for ( let filepath of filepaths ) {
 
-    const pageContent = readFile ( filepath ),
+    const page = pages[filepath],
+          pageContent = await readFile ( filepath ),
           tags = stringMatches ( pageContent, config.templateRe ),
           headers = tags.map ( match => match[1] ),
           contents = tags.map ( match => match[2] );
@@ -180,7 +187,7 @@ function getTemplates ( config, pages ) {
 
     });
 
-  });
+  }
 
   return templates;
 
@@ -255,17 +262,20 @@ function minifyPages ( config, pages ) {
 
 async function writePages ( config, pages ) {
 
-  _.forOwn ( pages, page => {
+  const filepaths = Object.keys ( pages );
 
-    const folderpath = path.dirname ( page.distPath );
+  for ( let filepath of filepaths ) {
 
-    if ( !fs.existsSync ( folderpath ) ) {
-      mkdirp.sync ( folderpath );
+    const page = pages[filepath],
+          folderpath = path.dirname ( page.distPath );
+
+    if ( !await getMtime ( folderpath ) ) {
+      await pify ( mkdirp )( folderpath );
     }
 
-    fs.writeFileSync ( page.distPath, page.content );
+    await writeFile ( page.distPath, page.content );
 
-  });
+  }
 
 }
 
@@ -294,7 +304,7 @@ async function clientfy ( config ) {
   const helpers = await getHelpers ( config ),
         layouts = await getLayouts ( config ),
         pages = await getPages ( config ),
-        templates = getTemplates ( config, pages );
+        templates = await getTemplates ( config, pages );
 
   renderPages ( config, helpers, layouts, templates, pages );
   minifyPages ( config, pages );
