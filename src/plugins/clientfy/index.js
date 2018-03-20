@@ -4,6 +4,7 @@
 /* REQUIRE */
 
 const _ = require ( 'lodash' ),
+      decache = require ( 'decache' ),
       fs = require ( 'fs' ),
       globby = require ( 'globby' ),
       minify = require ( 'html-minifier' ).minify,
@@ -16,21 +17,19 @@ const _ = require ( 'lodash' ),
 
 /* UTILITIES */
 
-const MtimesCache = {};
+let MtimesCache = {};
 
 async function getMtime ( filepath ) {
 
-  if ( !_.isUndefined ( MtimesCache[filepath] ) ) return MtimesCache[filepath];
+  if ( MtimesCache[filepath] ) return MtimesCache[filepath];
 
-  let Mtime = NaN;
+  return MtimesCache[filepath] = new Promise ( resolve => {
 
-  try {
+    pify ( fs.stat )( filepath )
+      .then ( stat => resolve ( stat.mtime.getTime () ) )
+      .catch ( () => resolve ( -1 ) );
 
-    Mtime = ( await pify ( fs.stat )( filepath ) ).mtime.getTime ();
-
-  } catch ( e ) {}
-
-  return MtimesCache[filepath] = Mtime;
+  });
 
 }
 
@@ -90,17 +89,21 @@ function isPageTemplate ( page, template ) {
 async function getHelpers ( config ) {
 
   const filepaths = await getGlobs ( config, config.helpersGlob ),
-        helpers = {};
+        customHelpers = {};
 
   for ( let filepath of filepaths ) {
 
     const namespace = path.parse ( filepath ).name;
 
-    helpers[namespace] = require ( filepath );
+    decache ( filepath ); // We might be getting a cached file when running in watch mode
+
+    customHelpers[namespace] = require ( filepath );
 
   }
 
-  return _.merge ( {}, defaultHelpers, helpers );
+  const helpers = _.merge ( {}, defaultHelpers, customHelpers );
+
+  return [filepaths, helpers];
 
 }
 
@@ -112,17 +115,38 @@ async function getLayouts ( config ) {
   await Promise.all ( filepaths.map ( async filepath => {
 
     const {name} = path.parse ( filepath ),
-          content = await readFile ( filepath );
+          content = await readFile ( filepath ),
+          layout = { path: filepath, name, content };
 
-    layouts[name] = { name, content };
+    layouts[name] = layout;
 
   }));
 
-  return layouts;
+  return [filepaths, layouts];
 
 }
 
-async function getPages ( config ) {
+async function canSkipPage ( page, helpersPaths, layoutsPaths ) { // Checking if the output will be the same
+
+  if ( await isNewer ( page.path, page.distPath ) ) return false;
+
+  for ( let helperPath of helpersPaths ) {
+
+    if ( await isNewer ( helperPath, page.distPath ) ) return false;
+
+  }
+
+  for ( let layoutPath of layoutsPaths ) {
+
+    if ( await isNewer ( layoutPath, page.distPath ) ) return false;
+
+  }
+
+  return true;
+
+}
+
+async function getPages ( config, helpersPaths, layoutsPaths ) {
 
   const pages = {},
         filepaths = await getGlobs ( config, config.pagesGlob ),
@@ -131,17 +155,17 @@ async function getPages ( config ) {
   await Promise.all ( filepaths.map ( async filepath => {
 
     const relPath = filepath.substr ( srcLength ),
-          distPath = path.join ( config.dist, relPath );
+          distPath = path.join ( config.dist, relPath ),
+          templateNames = getPageTemplateNames ( config, filepath ),
+          page = { path: filepath, distPath, templateNames };
 
-    if ( await isNewer ( distPath, filepath ) ) return; // Skipping, the source didn't change //TODO: Should also detect changes in the layouts
+    if ( await canSkipPage ( page, helpersPaths, layoutsPaths ) ) return;
 
-    const templateNames = getPageTemplateNames ( config, filepath );
-
-    pages[filepath] = { path: filepath, distPath, templateNames };
+    pages[filepath] = page;
 
   }));
 
-  return pages;
+  return [filepaths, pages];
 
 }
 
@@ -272,7 +296,7 @@ async function writePages ( config, pages ) {
     const page = pages[filepath],
           folderpath = path.dirname ( page.distPath );
 
-    if ( !await getMtime ( folderpath ) ) {
+    if ( await getMtime ( folderpath ) === -1 ) {
       await pify ( mkdirp )( folderpath );
     }
 
@@ -285,6 +309,10 @@ async function writePages ( config, pages ) {
 /* CLIENTFY */
 
 async function clientfy ( config ) {
+
+  /* RESETTING */
+
+  MtimesCache = {}; // This shouldn't be cached across executions
 
   /* CONFIG */
 
@@ -304,9 +332,9 @@ async function clientfy ( config ) {
 
   /* CLIENTFY */
 
-  const helpers = await getHelpers ( config ),
-        layouts = await getLayouts ( config ),
-        pages = await getPages ( config ),
+  const [helpersPaths, helpers] = await getHelpers ( config ),
+        [layoutsPaths, layouts] = await getLayouts ( config ),
+        [pagesPaths, pages] = await getPages ( config, helpersPaths, layoutsPaths ),
         templates = await getTemplates ( config, pages );
 
   renderPages ( config, helpers, layouts, templates, pages );
