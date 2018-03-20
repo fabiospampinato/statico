@@ -17,17 +17,21 @@ const _ = require ( 'lodash' ),
 
 /* UTILITIES */
 
+const MtimesCache = {};
+
 async function getMtime ( filepath ) {
+
+  if ( !_.isUndefined ( MtimesCache[filepath] ) ) return MtimesCache[filepath];
+
+  let Mtime = NaN;
 
   try {
 
-    return ( await pify ( fs.stat )( filepath ) ).mtime.getTime ();
+    mTime = ( await pify ( fs.stat )( filepath ) ).mtime.getTime ();
 
-  } catch ( e ) {
+  } catch ( e ) {}
 
-    return NaN;
-
-  }
+  return MtimesCache[filepath] = Mtime;
 
 }
 
