@@ -26,7 +26,7 @@ async function getMtime ( filepath ) {
 
   try {
 
-    mTime = ( await pify ( fs.stat )( filepath ) ).mtime.getTime ();
+    Mtime = ( await pify ( fs.stat )( filepath ) ).mtime.getTime ();
 
   } catch ( e ) {}
 
