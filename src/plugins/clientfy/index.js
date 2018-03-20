@@ -39,15 +39,15 @@ async function isNewer ( filepath1, filepath2 ) {
 
 }
 
-function parseArgs ( str ) {
+function parseArgs ( str ) { //FIXME: This is not very robust
 
   if ( !str ) return [[], undefined];
 
-  str = ` ${str}`.replace ( / (\S+=)/g, ' --$1' );
+  str = ` ${str}`.replace ( / (\S+=)/g, ' --$1' ).replace ( /'/g, '`' );
 
   const args = minimistStr ( str );
-        arr = args._.filter ( val => val !== '' ),
-        obj = _.mapValues ( _.omit ( args, '_' ), val => _.trim ( val, `"'` ) );
+        arr = args._.filter ( val => val !== '' ).map ( val => _.isString ( val ) ? val.replace ( /`/g, "'" ) : val ),
+        obj = _.mapValues ( _.omit ( args, '_' ), val => _.isString ( val ) ? _.trim ( val, `"'` ).replace ( /`/g, "'" ) : val );
 
   return [arr, _.isEmpty ( obj ) ? undefined : obj];
 
