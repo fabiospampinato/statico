@@ -109,14 +109,14 @@ async function getLayouts ( config ) {
   const filepaths = await getGlobs ( config, config.layoutsGlob ),
         layouts = {};
 
-  for ( let filepath of filepaths ) {
+  await Promise.all ( filepaths.map ( async filepath => {
 
     const {name} = path.parse ( filepath ),
           content = await readFile ( filepath );
 
     layouts[name] = { name, content };
 
-  }
+  }));
 
   return layouts;
 
@@ -128,18 +128,18 @@ async function getPages ( config ) {
         filepaths = await getGlobs ( config, config.pagesGlob ),
         srcLength = config.src.length + config.pagesGlob.indexOf ( '*' );
 
-  for ( let filepath of filepaths ) {
+  await Promise.all ( filepaths.map ( async filepath => {
 
     const relPath = filepath.substr ( srcLength ),
           distPath = path.join ( config.dist, relPath );
 
-    if ( await isNewer ( distPath, filepath ) ) continue; // Skipping, the source didn't change //TODO: Should also detect changes in the layouts
+    if ( await isNewer ( distPath, filepath ) ) return; // Skipping, the source didn't change //TODO: Should also detect changes in the layouts
 
     const templateNames = getPageTemplateNames ( config, filepath );
 
     pages[filepath] = { path: filepath, distPath, templateNames };
 
-  }
+  }));
 
   return pages;
 
@@ -150,7 +150,7 @@ async function getTemplates ( config, pages ) {
   const filepaths = Object.keys ( pages ),
         templates = {};
 
-  for ( let filepath of filepaths ) {
+  await Promise.all ( filepaths.map ( async filepath => {
 
     const page = pages[filepath],
           pageContent = await readFile ( filepath ),
@@ -190,7 +190,7 @@ async function getTemplates ( config, pages ) {
 
     });
 
-  }
+  }));
 
   return templates;
 
