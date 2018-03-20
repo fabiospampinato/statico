@@ -1,5 +1,4 @@
 
-//TODO: Parallelize async loops
 //TODO: Publish as `clientfy` or something
 
 /* REQUIRE */
@@ -55,7 +54,7 @@ function parseArgs ( str ) {
 
 }
 
-function getGlobs ( config, globs ) {
+async function getGlobs ( config, globs ) {
 
   return globby ( globs, {
     cwd: config.src,
@@ -84,7 +83,7 @@ function getPageTemplateNames ( config, filepath ) {
 
 function isPageTemplate ( page, template ) {
 
-  return !!page.templateNames.find ( name => name === template.name );
+  return page.templateNames.includes ( template.name );
 
 }
 
