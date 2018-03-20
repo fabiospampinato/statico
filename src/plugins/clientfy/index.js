@@ -146,7 +146,7 @@ async function canSkipPage ( page, helpersPaths, layoutsPaths ) { // Checking if
 
 }
 
-async function getPages ( config, helpersPaths, layoutsPaths ) {
+async function getPages ( config ) {
 
   const pages = {},
         filepaths = await getGlobs ( config, config.pagesGlob ),
@@ -159,13 +159,30 @@ async function getPages ( config, helpersPaths, layoutsPaths ) {
           templateNames = getPageTemplateNames ( config, filepath ),
           page = { path: filepath, distPath, templateNames };
 
-    if ( await canSkipPage ( page, helpersPaths, layoutsPaths ) ) return;
-
     pages[filepath] = page;
 
   }));
 
   return [filepaths, pages];
+
+}
+
+async function getPagesToRender ( config, pages, helpersPaths, layoutsPaths ) {
+
+  const pagesToRender = {},
+        filepaths = Object.keys ( pages );
+
+  await Promise.all ( filepaths.map ( async filepath => {
+
+    const page = pages[filepath];
+
+    if ( await canSkipPage ( page, helpersPaths, layoutsPaths ) ) return;
+
+    pagesToRender[filepath] = page;
+
+  }));
+
+  return pagesToRender;
 
 }
 
@@ -334,12 +351,13 @@ async function clientfy ( config ) {
 
   const [helpersPaths, helpers] = await getHelpers ( config ),
         [layoutsPaths, layouts] = await getLayouts ( config ),
-        [pagesPaths, pages] = await getPages ( config, helpersPaths, layoutsPaths ),
-        templates = await getTemplates ( config, pages );
+        [pagesPaths, pages] = await getPages ( config ),
+        templates = await getTemplates ( config, pages ),
+        pagesToRender = await getPagesToRender ( config, pages, helpersPaths, layoutsPaths );
 
-  renderPages ( config, helpers, layouts, templates, pages );
-  minifyPages ( config, pages );
-  writePages ( config, pages );
+  renderPages ( config, helpers, layouts, templates, pagesToRender );
+  minifyPages ( config, pagesToRender );
+  writePages ( config, pagesToRender );
 
 }
 
