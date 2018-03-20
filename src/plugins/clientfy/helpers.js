@@ -15,7 +15,11 @@ const helpers = {
 
     } else { // Another template
 
-      return this.templates[template].content;
+      const obj = this.templates[template];
+
+      if ( !obj ) throw new Error ( `Template "${template}" not found` );
+
+      return obj.content;
 
     }
 
