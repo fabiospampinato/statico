@@ -1,5 +1,4 @@
 
-//TODO: Avoid `sync` methods
 //TODO: Publish as `serverfy` or something
 
 /* REQUIRE */
@@ -14,23 +13,29 @@ const _ = require ( 'lodash' ),
 
 /* UTILITIES */
 
-function readFile ( filepath ) {
+async function readFile ( filepath ) {
 
   return pify ( fs.readFile )( filepath, { encoding: 'utf-8' } );
 
 }
 
-function writeFile ( filepath, template ) {
+async function writeFile ( filepath, content ) {
 
   const folderpath = path.dirname ( filepath );
 
-  mkdirp.sync ( folderpath );
+  await pify ( mkdirp )( folderpath );
 
-  fs.writeFileSync ( filepath, template );
+  await pify ( fs.writeFile )( filepath, content );
 
 }
 
-function getGlobs ( config, globs ) {
+async function unlinkFile ( filepath ) {
+
+  return pify ( fs.unlink )( filepath );
+
+}
+
+async function getGlobs ( config, globs ) {
 
   return globby ( globs, {
     cwd: config.src,
@@ -53,7 +58,7 @@ async function compileTemplate ( config, template ) {
 
   const TEMP_PATH = path.join ( __dirname, '.temp_server.js' );
 
-  fs.writeFileSync ( TEMP_PATH, template );
+  await writeFile ( TEMP_PATH, template );
 
   /* COMPILE */
 
@@ -75,8 +80,8 @@ async function compileTemplate ( config, template ) {
 
   /* CLEAN UP */
 
-  fs.unlinkSync ( TEMP_PATH );
-  fs.unlinkSync ( TEMP_WEBPACK_PATH );
+  await unlinkFile ( TEMP_PATH );
+  await unlinkFile ( TEMP_WEBPACK_PATH );
 
   return compiled;
 
