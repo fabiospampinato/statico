@@ -9,7 +9,7 @@ const gulp = require ( 'gulp' ),
 
 function task () {
 
-  return gulp.src ( config.input.static, { base: config.input.all } )
+  return gulp.src ( config.input.static, { dot: true, base: config.input.all } )
              .pipe ( gulp.dest ( config.output.static ) );
 
 }
