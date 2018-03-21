@@ -11,7 +11,7 @@ const defaults = {
     all: 'src',
     client: 'src/client',
     server: 'src/server',
-    static: ['src/static/**/*', 'src/*.*']
+    static: ['src/static/**/*', 'src/*.*', 'src/CNAME']
   },
   output: {
     all: 'dist',
