@@ -74,7 +74,7 @@ async function compileTemplate ( config, template ) {
 
   const stats = await pify ( webpack )( webpackConfig );
 
-  if ( stats.hasErrors () ) throw stats.toJson ().errors;
+  if ( stats.hasErrors () ) throw new Error ( _.first ( _.castArray ( stats.toJson ().errors ) ) );
 
   const compiled = await readFile ( TEMP_WEBPACK_PATH );
 
