@@ -35,7 +35,27 @@ async function getMtime ( filepath ) {
 
 async function isNewer ( filepath1, filepath2 ) {
 
-  return await getMtime ( filepath1 ) > await getMtime ( filepath2 );
+  const [Mtime1, Mtime2] = await Promise.all ([
+    _.isNumber ( filepath1 ) ? filepath1 : getMtime ( filepath1 ),
+    _.isNumber ( filepath2 ) ? filepath2 : getMtime ( filepath2 )
+  ]);
+
+  return Mtime1 > Mtime2;
+
+}
+
+const requireHotMtimesCache = {};
+
+async function requireHot ( filepath ) { //TODO: Publish as a standalone module
+
+  const Mtime = await getMtime ( filepath );
+
+  if ( await isNewer ( Mtime, requireHotMtimesCache[filepath] || 0 ) ) {
+    decache ( filepath );
+    requireHotMtimesCache[filepath] = Mtime;
+  }
+
+  return require ( filepath );
 
 }
 
@@ -91,15 +111,13 @@ async function getHelpers ( config ) {
   const filepaths = await getGlobs ( config, config.helpersGlob ),
         customHelpers = {};
 
-  for ( let filepath of filepaths ) {
+  await Promise.all ( filepaths.map ( async filepath => {
 
     const namespace = path.parse ( filepath ).name;
 
-    decache ( filepath ); // We might be getting a cached file when running in watch mode
+    customHelpers[namespace] = await requireHot ( filepath );
 
-    customHelpers[namespace] = require ( filepath );
-
-  }
+  }));
 
   const helpers = _.merge ( {}, defaultHelpers, customHelpers );
 
