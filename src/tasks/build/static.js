@@ -2,6 +2,7 @@
 /* REQUIRE */
 
 const gulp = require ( 'gulp' ),
+      newer = require ( 'gulp-newer' ),
       gutil = require ( '../../gutil' ),
       config = require ( '../../config' );
 
@@ -10,6 +11,7 @@ const gulp = require ( 'gulp' ),
 function task () {
 
   return gulp.src ( config.input.static, { dot: true, base: config.input.all } )
+             .pipe ( newer ( config.output.static ) )
              .pipe ( gulp.dest ( config.output.static ) );
 
 }
