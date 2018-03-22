@@ -28,6 +28,7 @@ const defaults = {
   browserSync: {
     server: 'dist',
     files: 'dist',
+    ignore: 'dist/**/*.scss',
     port: 3000,
     ui: false,
     notify: false
