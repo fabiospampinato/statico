@@ -26,7 +26,8 @@ async function CLI () {
     'clean/client', 'clean/server', 'clean/static', 'clean',
     'watch/client', 'watch/server', 'watch/static', 'watch',
     'build/client', 'build/server', 'build/static', 'build',
-    'serve'
+    'serve',
+    'deploy'
   ];
   const tasks = taskNames.map ( name => require ( `./tasks/${name}` ) );
   tasks.forEach ( task => {
