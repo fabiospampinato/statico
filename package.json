@@ -36,6 +36,7 @@
     "lodash": "^4.16.6",
     "minimist-string": "^1.0.2",
     "mkdirp": "^0.5.1",
+    "open": "0.0.5",
     "pify": "^3.0.0",
     "pretty-time": "^0.2.0",
     "read-pkg-up": "^3.0.0",

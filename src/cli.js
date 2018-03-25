@@ -27,12 +27,16 @@ async function CLI () {
     'watch/client', 'watch/server', 'watch/static', 'watch',
     'build/client', 'build/server', 'build/static', 'build',
     'serve',
+    'open',
     'deploy'
   ];
   const tasks = taskNames.map ( name => require ( `./tasks/${name}` ) );
   tasks.forEach ( task => {
     const hidden = ( task.group === 'all' && !argv.all );
-    app.command ( task.displayName, task.description ).action ( task ).visible ( !hidden );
+    const command = app.command ( task.displayName, task.description ).action ( task ).visible ( !hidden );
+    if ( task.displayName === 'open' ) {
+      command.option ( '--remote', 'Open the remote url' );
+    }
   });
 
   /* DEFAULT TASK */
