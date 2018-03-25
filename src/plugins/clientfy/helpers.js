@@ -25,6 +25,8 @@ const helpers = {
 
   },
 
+  eval,
+
   title: function ( homepage, advanced ) {
 
     if ( this.page.template.name === this.config.layoutMainTemplate ) return homepage;
