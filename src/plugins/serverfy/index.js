@@ -100,7 +100,7 @@ async function serverfy ( config ) {
     requestsGlob: '**/*.js',
     injectionRe: /\/\* REQUIRES:INJECT \*\//,
     webpack: {
-      mode: 'development'
+      mode: 'production'
     }
   }, config );
 
