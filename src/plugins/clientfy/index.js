@@ -287,9 +287,9 @@ function renderHelpers ( config, helpers, layouts, templates, pages, page ) {
 
     const method = _.trim ( match[1] || match[3] ),
           args = _.trim ( match[2] || match[4] ),
-          helper = _.get ( helpers, method );
+          helper = _.get ( helpers, `${method}.index` ) || _.get ( helpers, method );
 
-    if ( !helper ) throw new Error ( `Helper "${method}" not found` );
+    if ( !_.isFunction ( helper ) ) throw new Error ( `Helper "${method}" not found` );
 
     const thisArg = { config, helpers, layouts, templates, pages, page },
           [arr, obj] = parseArgs ( args ),
