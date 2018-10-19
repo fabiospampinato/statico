@@ -10,7 +10,7 @@
     "server"
   ],
   "bugs": {
-    "url": "https://github.com/svelto/statico/issues"
+    "url": "https://github.com/fabiospampinato/statico/issues"
   },
   "license": "MIT",
   "author": {
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/svelto/statico.git"
+    "url": "https://github.com/fabiospampinato/statico.git"
   },
   "dependencies": {
     "async-done": "^1.2.4",
