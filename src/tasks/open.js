@@ -3,11 +3,11 @@
 
 const _ = require ( 'lodash' ),
       argv = require ( 'yargs' ).argv,
-      chalk = require ( 'chalk' ),
       fs = require ( 'fs' ),
       open = require ( 'open' ),
       path = require ( 'path' ),
       pify = require ( 'pify' ),
+      {color} = require ( 'specialist' ),
       gutil = require ( '../gutil' ),
       config = require ( '../config' );
 
@@ -29,7 +29,7 @@ async function task () {
 
     } catch ( e ) {
 
-      throw new Error ( `CNAME file not found in "${chalk.underline ( CNAME )}"` );
+      throw new Error ( `CNAME file not found in "${color.underline ( CNAME )}"` );
 
     }
 

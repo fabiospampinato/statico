@@ -6,10 +6,10 @@
 const _ = require ( 'lodash' ),
       argv = require ( 'yargs' ).argv,
       asyncDone = require ( 'async-done' ),
-      chalk = require ( 'chalk' ),
       fancyLog = require ( 'fancy-log' ),
       gulp = require ( 'gulp' ),
       time = require ( 'pretty-time' ),
+      {color} = require ( 'specialist' ),
       config = require ( './config' );
 
 /* GUTIL */
@@ -64,7 +64,7 @@ const gutil = {
 
           startTime = process.hrtime ();
 
-          gutil.log ( `Starting '${chalk.cyan ( name )}'...` );
+          gutil.log ( `Starting '${color.cyan ( name )}'...` );
 
         }
 
@@ -72,7 +72,7 @@ const gutil = {
 
           const elapsed = process.hrtime ( startTime );
 
-          gutil.log ( `Finished '${chalk.cyan ( name )}' after ${chalk.magenta ( time ( elapsed ) )}` );
+          gutil.log ( `Finished '${color.cyan ( name )}' after ${color.magenta ( time ( elapsed ) )}` );
 
         }
 

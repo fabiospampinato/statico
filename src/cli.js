@@ -1,12 +1,10 @@
 
 /* REQUIRE */
 
-const _ = require ( 'lodash' ),
-      argv = require ( 'yargs' ).argv,
+const argv = require ( 'yargs' ).argv,
       caporal = require ( 'caporal' ),
-      readPkg = require ( 'read-pkg-up' ),
-      updateNotifier = require ( 'update-notifier' ),
-      gutil = require ( './gutil' );
+      {updater} = require ( 'specialist' ),
+      {name, version} = require ( '../package.json' );
 
 /* CLI */
 
@@ -14,11 +12,9 @@ async function CLI () {
 
   /* APP */
 
-  const {pkg} = await readPkg ({ cwd: __dirname });
+  updater ({ name, version });
 
-  updateNotifier ({ pkg }).notify ();
-
-  const app = caporal.version ( pkg.version );
+  const app = caporal.version ( version );
 
   /* TASKS */
 

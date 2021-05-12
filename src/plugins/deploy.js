@@ -2,14 +2,14 @@
 /* REQUIRE */
 
 const _ = require ( 'lodash' ),
-      chalk = require ( 'chalk' ),
       copy = require ( 'recursive-copy' ),
       del = require ( 'del' ),
       fs = require ( 'fs' ),
       os = require ( 'os' ),
       path = require ( 'path' ),
       pify = require ( 'pify' ),
-      simpleGit = require ( 'simple-git' );
+      simpleGit = require ( 'simple-git' ),
+      {color} = require ( 'specialist' );
 
 /* UTILITIES */
 
@@ -23,7 +23,7 @@ async function checkIsRepo ( git ) {
 
   if ( await git.checkIsRepo () ) return;
 
-  throw new Error ( `"${chalk.underline ( git._baseDir )}" is not a git repository` );
+  throw new Error ( `"${color.underline ( git._baseDir )}" is not a git repository` );
 
 }
 
@@ -45,9 +45,9 @@ async function getBranches ( config, git ) {
   const {current, all} = await git.branchLocal (),
         branch = config.branches.find ( branch => all.includes ( branch ) );
 
-  if ( !branch ) throw new Error ( `Deploy branch not found, support branches: ${all.map ( branch => `"${chalk.underline ( branch )}"` ).join ( ', ' )}`)
+  if ( !branch ) throw new Error ( `Deploy branch not found, support branches: ${all.map ( branch => `"${color.underline ( branch )}"` ).join ( ', ' )}`)
 
-  if ( branch === current ) throw new Error ( `Can't deploy to the current checked-out branch: "${chalk.underline ( branch )}"` );
+  if ( branch === current ) throw new Error ( `Can't deploy to the current checked-out branch: "${color.underline ( branch )}"` );
 
   return [current, branch];
 
@@ -73,7 +73,7 @@ async function checkPath ( filepath ) {
 
   if ( await isPath ( filepath ) ) return;
 
-  throw new Error ( `Path not found: "${chalk.underline ( filepath )}"` );
+  throw new Error ( `Path not found: "${color.underline ( filepath )}"` );
 
 }
 

@@ -2,7 +2,7 @@
 /* REQUIRE */
 
 const _ = require ( 'lodash' ),
-      rdf = require ( 'require-dot-file' );
+      findUp = require ( 'find-up-json' );
 
 /* CONFIG */
 
@@ -35,7 +35,9 @@ const defaults = {
   }
 };
 
-const custom = rdf ( 'statico.json', process.cwd () ) || {};
+const dotfile = findUp ( 'statico.json', process.cwd () );
+
+const custom = dotfile ? dotfile.content : {};
 
 /* EXPORT */
 
